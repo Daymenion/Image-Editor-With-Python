@@ -1,0 +1,5 @@
+numpy
+Pillow
+future
+opencv-python
+tk
