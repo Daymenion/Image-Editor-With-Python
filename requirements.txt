@@ -1,5 +1,4 @@
 numpy
 Pillow
 future
-opencv-python
-tk
+pygame

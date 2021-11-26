@@ -2,19 +2,25 @@ import tkinter as tk
 from tkinter import ttk
 from interface import Interface
 from InterfaceFunctions import InterfaceFunctions
+from pygame import mixer
 
 
 class Main(tk.Tk):
-
     def __init__(self):
         tk.Tk.__init__(self)
+
+        self.mixer = mixer
+        self.mixer.init()
+        self.mixer.music.load("./Sample_Images/Beethoven_9.Senfoni.mp3")
+        self.mixer.music.set_volume(0.7)
+        self.mixer.music.play(-1)
 
         self.filename = ""
         self.more_imageFilename = ""
         self.original_image = None
         self.processed_image = None
         self.rotating_image = None
-        self.drawing_cache = list()
+        self.image_cache = list()
         self.more_image = None
         self.is_image_selected = False
         self.is_draw_state = False

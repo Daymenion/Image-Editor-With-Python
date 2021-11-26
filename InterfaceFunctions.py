@@ -18,17 +18,18 @@ class InterfaceFunctions(Frame):
         self.rectangle_id = 0
         self.ratio = 0
         self.rotate_angle = 0
+        self.forward_cache = list()
 
         self.canvas = Canvas(self, bg="black", width=1280, height=720)
         self.canvas.place(relx=0.5, rely=0.5, anchor=CENTER)
 
-    def show_image(self, img=None):
+    def show_image(self, image=None):
         self.clear_canvas()
 
-        if img is None:
+        if image is None:
             image = self.master.processed_image.copy()
         else:
-            image = img
+            image = image
 
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         height, width, channels = image.shape
@@ -54,24 +55,39 @@ class InterfaceFunctions(Frame):
         self.canvas.create_image(new_width / 2, new_height / 2, anchor=CENTER, image=self.shown_image)
 
     def contrast(self):
+        self.master.image_cache.append(self.master.processed_image.copy())
         contrast = (ImageEnhance.Contrast(Image.fromarray(self.master.processed_image))).enhance(1.1)
         self.master.processed_image = np.array(contrast)
+        self.master.image_cache.append(self.master.processed_image.copy())
         self.show_image()
 
     def flipping(self):
+        self.master.image_cache.append(self.master.processed_image.copy())
         flipping_image = Image.fromarray(self.master.processed_image).copy()
         flipping_image = flipping_image.transpose(Image.FLIP_LEFT_RIGHT)
         self.master.processed_image = np.array(flipping_image).copy()
+        self.master.image_cache.append(self.master.processed_image.copy())
         self.show_image()
 
-    def resizing(self, x=100, y=100):
+    def resizing(self, x, y):
+        if x or y == '':
+            x, y = 500, 500
+        else:
+            x, y = int(x),  int(y)
+        self.master.image_cache.append(self.master.processed_image.copy())
         self.master.processed_image = np.array(Image.fromarray(self.master.processed_image).resize((x, y)))
+        self.master.image_cache.append(self.master.processed_image.copy())
         self.show_image()
 
     def rotate(self, rotateAngle):
+        if rotateAngle == '':
+            rotateAngle = 60
+        else:
+            float(rotateAngle)
         self.rotate_angle += rotateAngle
         self.master.rotating_image = np.array(Image.fromarray(self.master.processed_image).rotate(self.rotate_angle))
-        self.show_image(img=self.master.rotating_image)
+        self.master.image_cache.append(self.master.rotating_image.copy())
+        self.show_image(image=self.master.rotating_image)
 
     def activate_paste(self):
         self.canvas.bind("<ButtonPress>", self.start_paste)
@@ -114,11 +130,12 @@ class InterfaceFunctions(Frame):
         self.master.is_crop_state = False
 
     def start_paste(self, event):
+        self.master.image_cache.append(self.master.processed_image.copy())
         self.x = event.x
         self.y = event.y
 
     def start_draw(self, event):
-        self.master.drawing_cache.append(self.master.processed_image.copy())
+        self.master.image_cache.append(self.master.processed_image.copy())
         self.x = event.x
         self.y = event.y
 
@@ -152,6 +169,7 @@ class InterfaceFunctions(Frame):
         self.y = event.y
 
     def start_crop(self, event):
+        self.master.image_cache.append(self.master.processed_image.copy())
         self.crop_start_x = event.x
         self.crop_start_y = event.y
 
@@ -191,16 +209,21 @@ class InterfaceFunctions(Frame):
         y = slice(start_y, end_y, 1)
 
         self.master.processed_image = self.master.processed_image[y, x]
+        self.master.image_cache.append(self.master.processed_image.copy())
 
         self.show_image()
 
     def clear_canvas(self):
         self.canvas.delete("all")
 
-    def clear_draw(self):
-        # if u use some filter or adjust after drawing, u lost your filter and adjust changes when released clear draw
-        # But if u want to not to lost your changes u should add self.master.drawing_cache[0]
-        # to other parts with processed image. U should change drawing_cache[0] when you change processed_image
-        if self.master.drawing_cache:
-            self.master.processed_image = self.master.drawing_cache.pop()
+    def undo_image(self):
+        if self.master.image_cache:
+            self.master.processed_image = self.master.image_cache.pop()
+            self.forward_cache.append(self.master.processed_image)
+        self.show_image()
+
+    def forward_image(self):
+        if self.forward_cache:
+            self.master.processed_image = self.forward_cache.pop()
+            self.master.image_cache.append(self.master.processed_image)
         self.show_image()
