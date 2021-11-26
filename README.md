@@ -2,6 +2,7 @@
 
 
 
+[PHOTO EDITOR PROJECT.md](https://github.com/Daymenion/Image-Editor/files/7605629/PHOTO.EDITOR.PROJECT.md)
 
 
 
