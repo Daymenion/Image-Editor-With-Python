@@ -83,7 +83,7 @@ class InterfaceFunctions(Frame):
         if rotateAngle == '':
             rotateAngle = 60
         else:
-            float(rotateAngle)
+            rotateAngle = float(rotateAngle)
         self.rotate_angle += rotateAngle
         self.master.rotating_image = np.array(Image.fromarray(self.master.processed_image).rotate(self.rotate_angle))
         self.master.image_cache.append(self.master.rotating_image.copy())
